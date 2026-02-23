@@ -32,3 +32,4 @@ def get_prices(ticker):
 
 if __name__ == "__main__":
     test_connection()
+    print(get_prices("AAPL"))
