@@ -2,8 +2,11 @@ import os
 import pandas as pd
 import streamlit as st
 import plotly.graph_objects as go
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'ingestion'))
 from sqlalchemy import create_engine, text
 from dotenv import load_dotenv
+from fetch_stocks import fetch_prices
 
 # Load environment variables from .env file
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
@@ -20,6 +23,20 @@ st.title("Stock Tracker")
 #
 #st.dataframe(df)
 ##
+
+# Add a stock to the table
+newTicker = st.text_input("New Stock Ticker")
+newName = st.text_input("New Stock Name")
+
+if st.button("Add Stock"):
+    with engine.connect() as conn:
+            conn.execute(
+                text("INSERT INTO assets (ticker, name) VALUES (:ticker, :name)"),
+                {"ticker": newTicker.upper(), "name": newName}
+          )
+            conn.commit()
+    fetch_prices(newTicker)  # Fetch prices for the new stock immediately after adding
+    st.success(f"{newTicker.upper()} added and price history loaded!")
 
 # Fetch available tickers for the selector
 with engine.connect() as conn:
@@ -73,3 +90,4 @@ fig.update_layout(
 
 # Display the chart
 st.plotly_chart(fig, width="stretch")
+
